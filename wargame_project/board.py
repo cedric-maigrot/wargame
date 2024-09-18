@@ -5,18 +5,18 @@ class Building:
 
     def check_building_position(self, board_width, board_height):
         # Get the position of the building
-        building_x, building_y = position
+        self.building_x_min, self.building_y_min, self.building_x_max, self.building_y_max = self.position
 
         # Get the width and height of the building
-        building_width = 3  # Replace with the actual width of the building
-        building_height = 3  # Replace with the actual height of the building
+        self.building_width = self.building_x_max - self.building_x_min
+        self.building_height = self.building_y_max - self.building_y_min
 
         # Check if the building is within the board boundaries
         if (
-            building_x < 0
-            or building_x + building_width > board_width
-            or building_y < 0
-            or building_y + building_height > board_height
+            self.building_x_min < 0
+            or self.building_x_min + self.building_width > board_width
+            or self.building_y_min < 0
+            or self.building_y_min + self.building_height > board_height
         ):
             raise ValueError("Building is not fully within the board")
 
@@ -27,11 +27,16 @@ class Board:
         self.width = width
         self.height = height
 
+        # Ajoute trois building
+        self.add_building((500, 500, 550, 600))
+        self.add_building((600, 620, 650, 650))
+        self.add_building((260, 200, 300, 300))
+
     def get_dimensions(self):
         return (self.width, self.height)
 
     def add_building(self, position):
-        building = Building(position)
+        building = Building(position=position, board_width=self.width, board_height=self.height)
         self.obstacles.append(building)
 
     def remove_building(self, position):
