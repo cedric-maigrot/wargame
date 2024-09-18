@@ -11,9 +11,30 @@ class Unit:
         self.hp = hp
         self.hp_max = hp
         self.damage = damage
-        self.position = self.generate_random_position(board, zone)
+        self.generate_valid_position(board, zone)
+        
         self.orientation = random.randint(0, 360)
         self.speed = 1
+        self.status = "idle"
+
+    def generate_valid_position(self,board, zone):
+        # Generate a random position within the board boundaries
+        # While the unit spawn in a building, generate a new position
+        while True:
+            self.position = self.generate_random_position(board, zone)
+            building_collision = False
+            for building in board.obstacles:
+                if (
+                    self.position[0] >= building.building_x_min
+                    and self.position[0] <= building.building_x_max
+                    and self.position[1] >= building.building_y_min
+                    and self.position[1] <= building.building_y_max
+                ):
+                    building_collision = True
+                    break
+            if not building_collision:
+                break
+        
 
     def generate_random_position(self, board, zone):
         """
@@ -63,9 +84,11 @@ class Unit:
             # If there are visible enemies, attack the first one
             enemy = visible_enemies[0]
             self.attack(enemy)
+            self.status = "attacking"
         else:
             # If no enemies are visible, move forward
             self.move_forward(board)
+            self.status = "moving"
 
     def attack(self, enemy):
         """
@@ -73,6 +96,8 @@ class Unit:
         """
         enemy.hp -= self.damage
         print(f"{self.name} attacked {enemy.name} for {self.damage} damage.")
+        # Unit turn to face the enemy
+        self.orientation = self.calculate_angle(self.position, enemy.position)
         if enemy.hp <= 0:
             print(f"{enemy.name} has been defeated.")
 
@@ -84,14 +109,36 @@ class Unit:
         angle = random.uniform(-5, 5) + self.orientation
         x += self.speed * math.cos(math.radians(angle))
         y += self.speed * math.sin(math.radians(angle))
+
+        # Verify if the unit after the mouvement will not be in a building
+        # If it is the case, the unit will not move
+        for building in board.obstacles:
+            if (
+                x >= building.building_x_min
+                and x <= building.building_x_max
+                and y >= building.building_y_min
+                and y <= building.building_y_max
+            ):
+                # Turn the unit in order to avoid the building
+                self.orientation = (self.orientation + 5) % 360
+                return
+
         self.position = (x, y)
 
-        # Connect the borders of the board
-        board_dimensions = board.get_dimensions()
-        x, y = self.position
-        x = x % board_dimensions[0]
-        y = y % board_dimensions[1]
-        self.position = (x, y)
+        # If the unit is now outside the board boundaries, move it back inside
+        spacing = 5
+        if x < spacing:
+            x = spacing
+            self.orientation = (self.orientation + 5) % 360
+        if x >= board.width - spacing:
+            x = board.width - spacing
+            self.orientation = (self.orientation + 5) % 360
+        if y < spacing:
+            y = spacing
+            self.orientation = (self.orientation + 5) % 360
+        if y >= board.height - spacing:
+            y = board.height - spacing
+            self.orientation = (self.orientation + 5) % 360
 
     def calculate_distance(self, position1, position2):
         """
