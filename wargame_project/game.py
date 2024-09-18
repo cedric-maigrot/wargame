@@ -1,12 +1,13 @@
 from .board import Board
 from .team import Team
 from .alliance import Alliance
+from .drawing import display_board
 import pygame
 import math
 
 class Game:
     def __init__(self):
-        self.board = Board(width=800, height=600)
+        self.board = Board(width=800, height=700)
         self.alliances = []
         alliance1 = Alliance(
             "Alliance 1", color=(0, 157, 220)
@@ -46,19 +47,19 @@ class Game:
                 if event.type == pygame.QUIT:
                     running = False
 
-            self.display_board()
+            display_board(self.screen, self.board, self.alliances)
             self.play_turn()
             winner = self.check_winner()
             if winner:
                 running = False
-                self.end()
+                self.end(winner)
 
             # flip() the display to put your work on screen
             pygame.display.flip()
 
             clock.tick(60)  # limits FPS to 60
 
-    def end(self):
+    def end(self, winner):
         print(f"The winner is: {winner.name}")
         pygame.quit()
         exit()
@@ -69,50 +70,7 @@ class Game:
                 for unit in team.units:
                     unit.update(self.board, alliance, self.alliances)
 
-    def display_board(self):
-        self.screen.fill((255, 255, 255))
-
-        for alliance in self.alliances:
-            for team in alliance.teams:
-                for unit in team.units:
-                    if unit.is_alive():
-                        pygame.draw.circle(
-                            self.screen, alliance.color, (unit.position[0], unit.position[1]), 6
-                        )
-                        pygame.draw.circle(
-                            self.screen, team.color, (unit.position[0], unit.position[1]), 5
-                        )
-                        # Display the orientation of the unit
-                        orientation_vector = (
-                            math.cos(math.radians(unit.orientation)) * 10,
-                            math.sin(math.radians(unit.orientation)) * 10
-                        )
-                        pygame.draw.line(
-                            self.screen,
-                            (0, 0, 0),
-                            unit.position,
-                            (
-                                unit.position[0] + orientation_vector[0],
-                                unit.position[1] + orientation_vector[1],
-                            ),
-                            5,
-                        )
-                            
-                        pygame.draw.circle(
-                            self.screen, team.color, (unit.position[0], unit.position[1]), 5
-                        )
-                        pygame.draw.rect(
-                            self.screen,
-                            (255, 0, 0),
-                            (unit.position[0] - 10, unit.position[1] - 15, 20, 3),
-                        )
-                        pygame.draw.rect(
-                            self.screen,
-                            (0, 0, 0),
-                            (unit.position[0] - 10, unit.position[1] - 15, 20*(unit.hp/unit.hp_max), 3),
-                        )
-
-        pygame.display.flip()
+    
 
 
     def check_winner(self):
