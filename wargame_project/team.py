@@ -6,6 +6,7 @@ class Team:
     def __init__(self, name, color, board, zone):
         self.name = name
         self.color = color
+        self.zone = zone
         self.units = [Unit(f"Unit {x}", 100, 1, board, zone) for x in range(10)]
 
     def move(self, x, y):
@@ -17,3 +18,6 @@ class Team:
 
     def is_alive(self):
         return any(unit.is_alive() for unit in self.units) 
+    
+    def get_health(self):
+        return sum(unit.hp for unit in self.units)

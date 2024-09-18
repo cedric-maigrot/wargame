@@ -15,3 +15,6 @@ class Alliance:
     
     def is_alive(self):
         return any(team.is_alive() for team in self.teams)
+
+    def get_health(self):
+        return sum(team.get_health() for team in self.teams)
